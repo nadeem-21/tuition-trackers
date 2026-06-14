@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="description" content="Tuition Day Tracker – manage your students, subjects, classes, and schedules.">
+<meta name="theme-color" content="#6C63FF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Tuition Tracker">
+<link rel="manifest" href="manifest.json">
+<title>Tuition Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --accent: #6C63FF;
+    --accent-light: #EEEdFF;
+    --accent-dark: #4B44CC;
+    --bg: #F7F8FC;
+    --surface: #FFFFFF;
+    --surface2: #F2F3F8;
+    --border: #E4E6EF;
+    --text: #1A1B2E;
+    --text2: #5C5F7A;
+    --text3: #9396B0;
+    --success: #22C55E;
+    --success-bg: #DCFCE7;
+    --warning: #F59E0B;
+    --warning-bg: #FEF3C7;
+    --danger: #EF4444;
+    --danger-bg: #FEE2E2;
+    --info: #3B82F6;
+    --info-bg: #DBEAFE;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    --font: 'Inter', sans-serif;
+    --font-display: 'Space Grotesk', sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0F1117;
+      --surface: #1A1D27;
+      --surface2: #22263A;
+      --border: #2E3350;
+      --text: #E8EAF6;
+      --text2: #9396B0;
+      --text3: #5C5F7A;
+      --accent-light: #2A2760;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── LAYOUT ── */
+  .app { display: flex; flex-direction: column; min-height: 100vh; max-width: 500px; margin: 0 auto; }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 1rem 1.25rem 0;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: var(--shadow-md);
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+  .brand { font-family: var(--font-display); font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  .brand span { opacity: 0.75; font-weight: 500; }
+  .header-actions { display: flex; gap: 8px; }
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: none; color: #fff; font-size: 16px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── NAV TABS ── */
+  .nav-tabs { display: flex; gap: 0; margin-top: 4px; }
+  .tab-btn {
+    flex: 1; padding: 0.6rem 0.5rem; background: none; border: none;
+    color: rgba(255,255,255,0.65); font-family: var(--font); font-size: 12px;
+    font-weight: 500; cursor: pointer; display: flex; flex-direction: column;
+    align-items: center; gap: 3px; border-bottom: 2px solid transparent;
+    transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .tab-btn i { font-size: 18px; }
+  .tab-btn.active { color: #fff; border-bottom-color: #fff; }
+  .tab-btn:hover:not(.active) { color: rgba(255,255,255,0.85); }
+
+  /* ── MAIN CONTENT ── */
+  main { flex: 1; padding: 1rem 1rem 6rem; overflow-y: auto; }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── SECTION TITLE ── */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .section-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text); }
+  .section-sub { font-size: 13px; color: var(--text3); margin-top: 1px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1rem 1.125rem;
+    box-shadow: var(--shadow);
+  }
+  .card + .card { margin-top: 0.75rem; }
+
+  /* ── STAT GRID ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .stat-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 0.875rem 1rem;
+    box-shadow: var(--shadow);
+  }
+  .stat-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 10px; }
+  .stat-icon.purple { background: #EEEdFF; color: var(--accent); }
+  .stat-icon.green { background: var(--success-bg); color: var(--success); }
+  .stat-icon.amber { background: var(--warning-bg); color: var(--warning); }
+  .stat-icon.blue { background: var(--info-bg); color: var(--info); }
+  .stat-value { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--text); }
+  .stat-label { font-size: 12px; color: var(--text3); margin-top: 1px; }
+
+  /* ── TODAY SECTION ── */
+  .day-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent-light); color: var(--accent);
+    padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+
+  /* ── SESSION CARD ── */
+  .session-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 0.875rem 1rem;
+    display: flex; align-items: flex-start; gap: 10px;
+    box-shadow: var(--shadow);
+    margin-bottom: 0.625rem;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+  }
+  .session-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .session-card:active { transform: scale(0.99); }
+  .session-time-col { text-align: center; min-width: 46px; }
+  .session-time { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--accent); }
+  .session-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin: 6px auto; }
+  .session-info { flex: 1; min-width: 0; }
+  .session-name { font-weight: 600; font-size: 15px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .session-sub { font-size: 13px; color: var(--text2); margin-top: 1px; }
+  .session-meta { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .badge.purple { background: var(--accent-light); color: var(--accent); }
+  .badge.green { background: var(--success-bg); color: #16A34A; }
+  .badge.amber { background: var(--warning-bg); color: #B45309; }
+  .badge.blue { background: var(--info-bg); color: #1D4ED8; }
+  .badge.gray { background: var(--surface2); color: var(--text2); }
+  .session-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+  .status-toggle { background: none; border: none; cursor: pointer; font-size: 20px; padding: 2px; }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    text-align: center; padding: 2.5rem 1.5rem;
+    color: var(--text3); background: var(--surface);
+    border-radius: var(--radius); border: 1px dashed var(--border);
+  }
+  .empty i { font-size: 36px; margin-bottom: 10px; display: block; opacity: 0.4; }
+  .empty p { font-size: 14px; }
+
+  /* ── FORM STYLES ── */
+  .form-group { margin-bottom: 1rem; }
+  .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 0.625rem 0.875rem;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--surface); color: var(--text);
+    font-family: var(--font); font-size: 15px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none; appearance: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,99,255,0.12);
+  }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 0.625rem 1.25rem; border-radius: var(--radius-sm);
+    font-family: var(--font); font-size: 15px; font-weight: 500;
+    cursor: pointer; border: none; transition: all 0.15s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: var(--danger-bg); color: var(--danger); }
+  .btn-danger:hover { background: var(--danger); color: #fff; }
+  .btn-full { width: 100%; }
+  .btn-sm { padding: 0.375rem 0.875rem; font-size: 13px; }
+
+  /* ── FAB ── */
+  .fab {
+    position: fixed; bottom: 1.5rem; right: 1.5rem;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    border: none; font-size: 24px; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(108,99,255,0.4);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; z-index: 50;
+  }
+  .fab:hover { transform: scale(1.08); background: var(--accent-dark); }
+  .fab:active { transform: scale(0.96); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 200; display: flex; align-items: flex-end;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); border-radius: 20px 20px 0 0;
+    width: 100%; max-height: 92vh; overflow-y: auto;
+    padding: 0 1.25rem 2rem;
+    transform: translateY(100%); transition: transform 0.3s cubic-bezier(.32,0,.67,0);
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 1.25rem; }
+  .modal-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 1.25rem; color: var(--text); }
+  .modal-footer { display: flex; gap: 10px; margin-top: 1.25rem; }
+  .modal-footer .btn { flex: 1; }
+
+  /* ── CALENDAR VIEW ── */
+  .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .cal-nav { background: none; border: none; color: var(--accent); font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: var(--radius-sm); }
+  .cal-nav:hover { background: var(--accent-light); }
+  .cal-month { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .cal-day-name { text-align: center; font-size: 11px; font-weight: 600; color: var(--text3); padding: 4px 0; text-transform: uppercase; }
+  .cal-day {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; border-radius: 50%; cursor: pointer; transition: all 0.1s;
+    color: var(--text); position: relative;
+  }
+  .cal-day:hover { background: var(--accent-light); color: var(--accent); }
+  .cal-day.today { background: var(--accent); color: #fff; font-weight: 700; }
+  .cal-day.selected { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+  .cal-day.has-session::after { content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }
+  .cal-day.today::after { background: #fff; }
+  .cal-day.other-month { color: var(--text3); }
+
+  /* ── STUDENT LIST ── */
+  .student-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 0.875rem 1rem;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 0.625rem;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .student-card:hover { border-color: var(--accent); }
+  .avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--accent-light); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 15px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .student-info { flex: 1; min-width: 0; }
+  .student-name { font-weight: 600; font-size: 15px; color: var(--text); }
+  .student-sub { font-size: 13px; color: var(--text2); }
+  .student-chevron { color: var(--text3); font-size: 14px; }
+
+  /* ── SEARCH ── */
+  .search-wrap { position: relative; margin-bottom: 1rem; }
+  .search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 15px; }
+  .search-input { padding-left: 36px !important; }
+
+  /* ── SETTINGS ── */
+  .settings-section { margin-bottom: 1.5rem; }
+  .settings-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); margin-bottom: 8px; }
+  .settings-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 0.875rem 1rem;
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 6px; cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .settings-item:hover { border-color: var(--accent); }
+  .settings-item-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .settings-item-text { flex: 1; }
+  .settings-item-label { font-size: 15px; font-weight: 500; color: var(--text); }
+  .settings-item-sub { font-size: 12px; color: var(--text3); }
+
+  /* ── TOGGLE ── */
+  .toggle { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0; background: var(--border);
+    border-radius: 12px; transition: 0.2s; cursor: pointer;
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute; width: 18px; height: 18px;
+    border-radius: 50%; background: #fff; left: 3px; top: 3px;
+    transition: 0.2s; box-shadow: var(--shadow);
+  }
+  .toggle input:checked + .toggle-slider { background: var(--accent); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+  /* ── WEEK VIEW ── */
+  .week-strip { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 1rem; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .week-strip::-webkit-scrollbar { display: none; }
+  .week-day-chip {
+    flex-shrink: 0; width: 48px; text-align: center;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 8px 4px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .week-day-chip.active { background: var(--accent); border-color: var(--accent); }
+  .week-day-chip.active .wdc-name, .week-day-chip.active .wdc-num { color: #fff; }
+  .wdc-name { font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text3); letter-spacing: 0.5px; }
+  .wdc-num { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.2; }
+  .wdc-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); margin: 3px auto 0; }
+  .week-day-chip.active .wdc-dot { background: rgba(255,255,255,0.7); }
+
+  /* ── SUBJECT COLORS ── */
+  .color-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ── RESPONSIVE ── */
+  @media (min-width: 500px) {
+    main { padding: 1.25rem 1.25rem 6rem; }
+    .app { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-in { animation: slideUp 0.25s ease forwards; }
+
+  /* ── PRINT ── */
+  @media print {
+    header, .fab, .modal-overlay { display: none !important; }
+    main { padding: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-top">
+      <div class="brand">Tuition <span>Tracker</span></div>
+      <div class="header-actions">
+        <button class="icon-btn" onclick="openSearch()" title="Search"><i class="fa fa-search"></i></button>
+        <button class="icon-btn" onclick="exportData()" title="Export"><i class="fa fa-download"></i></button>
+      </div>
+    </div>
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('home')" id="tab-home">
+        <i class="fa fa-house"></i> Home
+      </button>
+      <button class="tab-btn" onclick="switchTab('schedule')" id="tab-schedule">
+        <i class="fa fa-calendar-days"></i> Schedule
+      </button>
+      <button class="tab-btn" onclick="switchTab('students')" id="tab-students">
+        <i class="fa fa-users"></i> Students
+      </button>
+      <button class="tab-btn" onclick="switchTab('settings')" id="tab-settings">
+        <i class="fa fa-gear"></i> Settings
+      </button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ── HOME VIEW ── -->
+    <div class="view active" id="view-home">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon purple"><i class="fa fa-users"></i></div>
+          <div class="stat-value" id="stat-students">0</div>
+          <div class="stat-label">Total Students</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fa fa-calendar-check"></i></div>
+          <div class="stat-value" id="stat-today">0</div>
+          <div class="stat-label">Today's Sessions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber"><i class="fa fa-book-open"></i></div>
+          <div class="stat-value" id="stat-subjects">0</div>
+          <div class="stat-label">Subjects</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fa fa-chart-line"></i></div>
+          <div class="stat-value" id="stat-week">0</div>
+          <div class="stat-label">This Week</div>
+        </div>
+      </div>
+
+      <div class="day-badge"><i class="fa fa-sun"></i> <span id="today-label">Today</span></div>
+
+      <div id="today-sessions">
+        <div class="empty">
+          <i class="fa fa-calendar-xmark"></i>
+          <p>No sessions today.<br>Tap <strong>+</strong> to add one.</p>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem;">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Upcoming</div>
+            <div class="section-sub">Next 7 days</div>
+          </div>
+        </div>
+        <div id="upcoming-sessions"></div>
+      </div>
+    </div>
+
+    <!-- ── SCHEDULE VIEW ── -->
+    <div class="view" id="view-schedule">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Schedule</div>
+          <div class="section-sub">Browse by week or calendar</div>
+        </div>
+        <div>
+          <button class="btn btn-sm btn-secondary" onclick="toggleCalView()">
+            <i class="fa fa-calendar" id="cal-toggle-icon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Week strip -->
+      <div class="week-strip" id="week-strip"></div>
+
+      <!-- Calendar (hidden by default) -->
+      <div id="cal-view" style="display:none; margin-bottom: 1rem;">
+        <div class="card">
+          <div class="calendar-header">
+            <button class="cal-nav" onclick="changeMonth(-1)"><i class="fa fa-chevron-left"></i></button>
+            <div class="cal-month" id="cal-month-label"></div>
+            <button class="cal-nav" onclick="changeMonth(1)"><i class="fa fa-chevron-right"></i></button>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+        </div>
+      </div>
+
+      <div id="schedule-sessions"></div>
+    </div>
+
+    <!-- ── STUDENTS VIEW ── -->
+    <div class="view" id="view-students">
+      <div class="section-header">
+        <div class="section-title">Students</div>
+        <button class="btn btn-sm btn-primary" onclick="openAddStudent()"><i class="fa fa-plus"></i> Add</button>
+      </div>
+
+      <div class="search-wrap">
+        <i class="fa fa-search"></i>
+        <input type="text" class="form-input search-input" placeholder="Search students…" oninput="filterStudents(this.value)" id="student-search">
+      </div>
+
+      <div id="students-list"></div>
+    </div>
+
+    <!-- ── SETTINGS VIEW ── -->
+    <div class="view" id="view-settings">
+      <div class="section-title" style="margin-bottom: 1.25rem;">Settings</div>
+
+      <div class="settings-section">
+        <div class="settings-title">Data</div>
+        <div class="settings-item" onclick="exportData()">
+          <div class="settings-item-icon"><i class="fa fa-download"></i></div>
+          <div class="settings-item-text">
+            <div class="settings-item-label">Export Data</div>
+            <div class="settings-item-sub">Download all sessions as JSON</div>
+          </div>
+          <i class="fa fa-chevron-right" style="color:var(--text3)"></i>
+        </div>
+        <div class="settings-item" onclick="importDataPrompt()">
+          <div class="settings-item-icon"><i class="fa fa-upload"></i></div>
+          <div class="settings-item-text">
+            <div class="settings-item-label">Import Data</div>
+            <div class="settings-item-sub">Restore from exported JSON</div>
+          </div>
+          <i class="fa fa-chevron-right" style="color:var(--text3)"></i>
+        </div>
+        <div class="settings-item" onclick="clearAllData()">
+          <div class="settings-item-icon" style="background:var(--danger-bg);color:var(--danger)"><i class="fa fa-trash"></i></div>
+          <div class="settings-item-text">
+            <div class="settings-item-label" style="color:var(--danger)">Clear All Data</div>
+            <div class="settings-item-sub">Remove all students & sessions</div>
+          </div>
+          <i class="fa fa-chevron-right" style="color:var(--text3)"></i>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-title">Preferences</div>
+        <div class="settings-item">
+          <div class="settings-item-icon"><i class="fa fa-bell"></i></div>
+          <div class="settings-item-text">
+            <div class="settings-item-label">Notifications</div>
+            <div class="settings-item-sub">Session reminders</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="notif-toggle" onchange="saveSettings()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-icon"><i class="fa fa-moon"></i></div>
+          <div class="settings-item-text">
+            <div class="settings-item-label">Dark mode</div>
+            <div class="settings-item-sub">Follows system preference</div>
+          </div>
+          <span class="badge gray">Auto</span>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-title">About</div>
+        <div class="card" style="text-align:center; padding: 1.5rem;">
+          <div style="font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">Tuition Tracker</div>
+          <div style="font-size: 13px; color: var(--text3); margin-bottom: 12px;">Version 1.0.0 · Open Source</div>
+          <a href="https://github.com" target="_blank" class="btn btn-secondary btn-sm">
+            <i class="fa-brands fa-github"></i> View on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openAddSession()" title="Add session">
+  <i class="fa fa-plus"></i>
+</button>
+
+<!-- ── ADD/EDIT SESSION MODAL ── -->
+<div class="modal-overlay" id="session-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="session-modal-title">Add Session</div>
+
+    <div class="form-group">
+      <label class="form-label">Student Name *</label>
+      <input type="text" class="form-input" id="f-student" placeholder="e.g. Rahim Hossain" list="students-datalist">
+      <datalist id="students-datalist"></datalist>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Class / Grade</label>
+      <input type="text" class="form-input" id="f-class" placeholder="e.g. Class 9, Grade 11, A-Level">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Subject *</label>
+      <input type="text" class="form-input" id="f-subject" placeholder="e.g. Mathematics, Physics" list="subjects-datalist">
+      <datalist id="subjects-datalist"></datalist>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Date *</label>
+        <input type="date" class="form-input" id="f-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Day</label>
+        <input type="text" class="form-input" id="f-day" readonly placeholder="Auto">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Start Time *</label>
+        <input type="time" class="form-input" id="f-time-start">
+      </div>
+      <div class="form-group">
+        <label class="form-label">End Time</label>
+        <input type="time" class="form-input" id="f-time-end">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Location / Venue</label>
+      <input type="text" class="form-input" id="f-location" placeholder="e.g. Home, Online, Student's house">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Fee (BDT)</label>
+      <input type="number" class="form-input" id="f-fee" placeholder="0" min="0">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Repeat</label>
+      <select class="form-select" id="f-repeat">
+        <option value="none">No repeat</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly (same day)</option>
+        <option value="biweekly">Bi-weekly</option>
+        <option value="monthly">Monthly</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea class="form-textarea" id="f-notes" placeholder="Homework, topics covered, reminders…"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('session-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSession()">
+        <i class="fa fa-check"></i> Save
+      </button>
+    </div>
+
+    <div id="session-delete-wrap" style="margin-top: 0.75rem; display:none;">
+      <button class="btn btn-danger btn-full" onclick="deleteCurrentSession()">
+        <i class="fa fa-trash"></i> Delete Session
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADD STUDENT MODAL ── -->
+<div class="modal-overlay" id="student-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Student</div>
+
+    <div class="form-group">
+      <label class="form-label">Full Name *</label>
+      <input type="text" class="form-input" id="sf-name" placeholder="Student's full name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Class / Grade</label>
+      <input type="text" class="form-input" id="sf-class" placeholder="e.g. Class 10, A2">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phone / WhatsApp</label>
+      <input type="tel" class="form-input" id="sf-phone" placeholder="+880…">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Guardian Name</label>
+      <input type="text" class="form-input" id="sf-guardian" placeholder="Parent or guardian name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Address</label>
+      <input type="text" class="form-input" id="sf-address" placeholder="Area or address">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea class="form-textarea" id="sf-notes" placeholder="Any notes about this student…"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('student-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStudent()"><i class="fa fa-check"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCH OVERLAY -->
+<div class="modal-overlay" id="search-modal">
+  <div class="modal" style="border-radius: 20px 20px 0 0;">
+    <div class="modal-handle"></div>
+    <div class="search-wrap" style="margin-bottom: 0.75rem;">
+      <i class="fa fa-search"></i>
+      <input type="text" class="form-input search-input" placeholder="Search sessions, students, subjects…" oninput="globalSearch(this.value)" id="global-search-input" autofocus>
+    </div>
+    <div id="search-results" style="max-height: 50vh; overflow-y: auto; padding-top: 0.5rem;"></div>
+  </div>
+</div>
+
+<!-- IMPORT INPUT (hidden) -->
+<input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
+
+<script>
+// ── DATA LAYER ──
+let db = {
+  sessions: [],
+  students: [],
+  settings: { notifications: false }
+};
+
+function save() {
+  localStorage.setItem('tuition-tracker', JSON.stringify(db));
+}
+
+function load() {
+  const raw = localStorage.getItem('tuition-tracker');
+  if (raw) {
+    try { db = JSON.parse(raw); } catch(e) {}
+  }
+  // ensure arrays
+  if (!db.sessions) db.sessions = [];
+  if (!db.students) db.students = [];
+  if (!db.settings) db.settings = { notifications: false };
+}
+
+// ── UTILITIES ──
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DAYS_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function today() {
+  const d = new Date(); return fmtDate(d);
+}
+function fmtDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function parseDate(s) { return new Date(s + 'T00:00:00'); }
+function dayName(s) { return DAYS_FULL[parseDate(s).getDay()]; }
+function shortDay(s) { return DAYS[parseDate(s).getDay()]; }
+
+function fmt12(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':');
+  const hr = parseInt(h);
+  return (hr % 12 || 12) + ':' + m + (hr < 12 ? ' AM' : ' PM');
+}
+
+function subjectColor(subject) {
+  const colors = ['purple','green','amber','blue','gray'];
+  let hash = 0;
+  for (let c of subject) hash = hash * 31 + c.charCodeAt(0);
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function initials(name) {
+  return name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase();
+}
+
+// ── STATS ──
+function updateStats() {
+  const todayStr = today();
+  const d = new Date();
+  const weekStart = new Date(d); weekStart.setDate(d.getDate() - d.getDay());
+  const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
+
+  const todaySessions = db.sessions.filter(s => s.date === todayStr);
+  const weekSessions = db.sessions.filter(s => {
+    const sd = parseDate(s.date);
+    return sd >= weekStart && sd <= weekEnd;
+  });
+
+  const allSubjects = [...new Set(db.sessions.map(s => s.subject).filter(Boolean))];
+
+  document.getElementById('stat-students').textContent = db.students.length;
+  document.getElementById('stat-today').textContent = todaySessions.length;
+  document.getElementById('stat-subjects').textContent = allSubjects.length;
+  document.getElementById('stat-week').textContent = weekSessions.length;
+}
+
+// ── TABS ──
+let currentTab = 'home';
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('view-' + tab).classList.add('active');
+  currentTab = tab;
+  if (tab === 'home') renderHome();
+  if (tab === 'schedule') renderSchedule();
+  if (tab === 'students') renderStudents();
+}
+
+// ── HOME ──
+function renderHome() {
+  updateStats();
+  const todayStr = today();
+  const d = new Date();
+
+  // Label
+  document.getElementById('today-label').textContent =
+    DAYS_FULL[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS[d.getMonth()];
+
+  const todaySessions = db.sessions
+    .filter(s => s.date === todayStr)
+    .sort((a,b) => (a.timeStart||'').localeCompare(b.timeStart||''));
+
+  const todayEl = document.getElementById('today-sessions');
+  if (todaySessions.length === 0) {
+    todayEl.innerHTML = `<div class="empty"><i class="fa fa-calendar-xmark"></i><p>No sessions today.<br>Tap <strong>+</strong> to add one.</p></div>`;
+  } else {
+    todayEl.innerHTML = todaySessions.map(s => sessionCardHTML(s)).join('');
+  }
+
+  // Upcoming (next 7 days, not today)
+  const upcoming = db.sessions.filter(s => {
+    const sd = parseDate(s.date);
+    const now = new Date();
+    const seven = new Date(); seven.setDate(now.getDate() + 7);
+    return sd > now && sd <= seven;
+  }).sort((a,b) => a.date.localeCompare(b.date) || (a.timeStart||'').localeCompare(b.timeStart||''));
+
+  const upEl = document.getElementById('upcoming-sessions');
+  if (upcoming.length === 0) {
+    upEl.innerHTML = `<div class="empty"><i class="fa fa-calendar-days"></i><p>No upcoming sessions this week.</p></div>`;
+  } else {
+    upEl.innerHTML = upcoming.map(s => sessionCardHTML(s, true)).join('');
+  }
+}
+
+function sessionCardHTML(s, showDate=false) {
+  const col = subjectColor(s.subject || 'x');
+  const statusIcon = s.status === 'done' ? '✅' : s.status === 'cancelled' ? '❌' : '🔵';
+  return `<div class="session-card animate-in" onclick="openEditSession('${s.id}')">
+    <div class="session-time-col">
+      <div class="session-time">${fmt12(s.timeStart)}</div>
+      <div class="session-dot"></div>
+      ${s.timeEnd ? `<div class="session-time" style="font-size:11px;opacity:0.7">${fmt12(s.timeEnd)}</div>` : ''}
+    </div>
+    <div class="session-info">
+      <div class="session-name">${s.student}</div>
+      <div class="session-sub">${s.class ? s.class + ' · ' : ''}${s.subject}</div>
+      <div class="session-meta">
+        ${showDate ? `<span class="badge gray"><i class="fa fa-calendar" style="font-size:10px"></i> ${shortDay(s.date)} ${s.date.slice(5).replace('-','/')}</span>` : ''}
+        ${s.location ? `<span class="badge gray"><i class="fa fa-location-dot" style="font-size:10px"></i> ${s.location}</span>` : ''}
+        ${s.fee ? `<span class="badge green">৳${s.fee}</span>` : ''}
+        <span class="badge ${col}">${s.subject}</span>
+      </div>
+    </div>
+    <div class="session-actions">
+      <button class="status-toggle" onclick="event.stopPropagation(); cycleStatus('${s.id}')" title="Toggle status">${statusIcon}</button>
+    </div>
+  </div>`;
+}
+
+function cycleStatus(id) {
+  const s = db.sessions.find(x => x.id === id);
+  if (!s) return;
+  const cycle = { undefined: 'done', null: 'done', done: 'cancelled', cancelled: undefined };
+  s.status = cycle[s.status];
+  save(); renderHome();
+}
+
+// ── SCHEDULE ──
+let scheduleDate = today();
+let calViewOpen = false;
+let calYear, calMonth;
+
+function renderSchedule() {
+  renderWeekStrip();
+  renderScheduleSessions();
+  if (calViewOpen) renderCalendar();
+}
+
+function renderWeekStrip() {
+  const strip = document.getElementById('week-strip');
+  const base = parseDate(scheduleDate);
+  const days = [];
+  for (let i = -3; i <= 10; i++) {
+    const d = new Date(base); d.setDate(base.getDate() + i);
+    days.push(d);
+  }
+  strip.innerHTML = days.map(d => {
+    const ds = fmtDate(d);
+    const hasSess = db.sessions.some(s => s.date === ds);
+    const isActive = ds === scheduleDate;
+    const isToday = ds === today();
+    return `<div class="week-day-chip ${isActive ? 'active' : ''}" onclick="selectScheduleDate('${ds}')">
+      <div class="wdc-name">${DAYS[d.getDay()]}</div>
+      <div class="wdc-num">${d.getDate()}</div>
+      ${hasSess ? `<div class="wdc-dot"></div>` : '<div style="height:8px"></div>'}
+      ${isToday && !isActive ? '<div style="font-size:9px;color:var(--accent);font-weight:600">TODAY</div>' : ''}
+    </div>`;
+  }).join('');
+  // scroll active into view
+  setTimeout(() => {
+    const active = strip.querySelector('.active');
+    if (active) active.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+  }, 50);
+}
+
+function selectScheduleDate(ds) {
+  scheduleDate = ds;
+  renderWeekStrip();
+  renderScheduleSessions();
+  if (calViewOpen) renderCalendar();
+}
+
+function renderScheduleSessions() {
+  const sessions = db.sessions
+    .filter(s => s.date === scheduleDate)
+    .sort((a,b) => (a.timeStart||'').localeCompare(b.timeStart||''));
+
+  const d = parseDate(scheduleDate);
+  const label = DAYS_FULL[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+
+  const el = document.getElementById('schedule-sessions');
+  el.innerHTML = `<div class="day-badge" style="margin-bottom:0.75rem"><i class="fa fa-calendar"></i> ${label}</div>`;
+  if (sessions.length === 0) {
+    el.innerHTML += `<div class="empty"><i class="fa fa-calendar-xmark"></i><p>No sessions on this day.</p></div>`;
+  } else {
+    el.innerHTML += sessions.map(s => sessionCardHTML(s)).join('');
+  }
+}
+
+function toggleCalView() {
+  calViewOpen = !calViewOpen;
+  document.getElementById('cal-view').style.display = calViewOpen ? 'block' : 'none';
+  document.getElementById('cal-toggle-icon').className = calViewOpen ? 'fa fa-list' : 'fa fa-calendar';
+  if (calViewOpen) { calYear = parseInt(scheduleDate.slice(0,4)); calMonth = parseInt(scheduleDate.slice(5,7))-1; renderCalendar(); }
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  document.getElementById('cal-month-label').textContent = MONTHS[calMonth] + ' ' + calYear;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = DAYS.map(d => `<div class="cal-day-name">${d[0]}</div>`).join('');
+
+  const first = new Date(calYear, calMonth, 1);
+  const last = new Date(calYear, calMonth+1, 0);
+  const startDow = first.getDay();
+
+  // Pad start
+  for (let i = 0; i < startDow; i++) {
+    const prevDay = new Date(calYear, calMonth, -startDow + i + 1);
+    const ds = fmtDate(prevDay);
+    grid.innerHTML += `<div class="cal-day other-month" onclick="selectScheduleDate('${ds}')">${prevDay.getDate()}</div>`;
+  }
+
+  for (let i = 1; i <= last.getDate(); i++) {
+    const ds = calYear + '-' + String(calMonth+1).padStart(2,'0') + '-' + String(i).padStart(2,'0');
+    const isToday = ds === today();
+    const isSelected = ds === scheduleDate;
+    const hasSess = db.sessions.some(s => s.date === ds);
+    grid.innerHTML += `<div class="cal-day ${isToday?'today':''} ${isSelected&&!isToday?'selected':''} ${hasSess?'has-session':''}" onclick="selectScheduleDate('${ds}')">${i}</div>`;
+  }
+}
+
+// ── STUDENTS ──
+let studentFilter = '';
+function renderStudents() {
+  const list = document.getElementById('students-list');
+  let students = db.students;
+  if (studentFilter) {
+    const q = studentFilter.toLowerCase();
+    students = students.filter(s => s.name.toLowerCase().includes(q) || (s.class||'').toLowerCase().includes(q));
+  }
+
+  if (students.length === 0) {
+    list.innerHTML = `<div class="empty"><i class="fa fa-users"></i><p>${studentFilter ? 'No matches found.' : 'No students yet.<br>Tap <strong>Add</strong> to get started.'}</p></div>`;
+    return;
+  }
+
+  list.innerHTML = students.map(s => {
+    const sessCount = db.sessions.filter(x => x.student === s.name).length;
+    return `<div class="student-card" onclick="openStudentDetail('${s.id}')">
+      <div class="avatar">${initials(s.name)}</div>
+      <div class="student-info">
+        <div class="student-name">${s.name}</div>
+        <div class="student-sub">${s.class || 'No class'} · ${sessCount} session${sessCount !== 1 ? 's' : ''}</div>
+      </div>
+      <i class="fa fa-chevron-right student-chevron"></i>
+    </div>`;
+  }).join('');
+}
+
+function filterStudents(q) {
+  studentFilter = q;
+  renderStudents();
+}
+
+// ── MODAL HELPERS ──
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+  editingSessionId = null;
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+});
+
+// ── SESSION MODAL ──
+let editingSessionId = null;
+
+function openAddSession(prefillDate) {
+  editingSessionId = null;
+  document.getElementById('session-modal-title').textContent = 'Add Session';
+  document.getElementById('session-delete-wrap').style.display = 'none';
+
+  // Reset form
+  ['f-student','f-class','f-subject','f-location','f-fee','f-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-repeat').value = 'none';
+  const fd = prefillDate || scheduleDate || today();
+  document.getElementById('f-date').value = fd;
+  document.getElementById('f-day').value = dayName(fd);
+  document.getElementById('f-time-start').value = '';
+  document.getElementById('f-time-end').value = '';
+
+  refreshDataLists();
+  openModal('session-modal');
+}
+
+function openEditSession(id) {
+  const s = db.sessions.find(x => x.id === id);
+  if (!s) return;
+  editingSessionId = id;
+  document.getElementById('session-modal-title').textContent = 'Edit Session';
+  document.getElementById('session-delete-wrap').style.display = 'block';
+  document.getElementById('f-student').value = s.student || '';
+  document.getElementById('f-class').value = s.class || '';
+  document.getElementById('f-subject').value = s.subject || '';
+  document.getElementById('f-date').value = s.date || '';
+  document.getElementById('f-day').value = s.date ? dayName(s.date) : '';
+  document.getElementById('f-time-start').value = s.timeStart || '';
+  document.getElementById('f-time-end').value = s.timeEnd || '';
+  document.getElementById('f-location').value = s.location || '';
+  document.getElementById('f-fee').value = s.fee || '';
+  document.getElementById('f-notes').value = s.notes || '';
+  document.getElementById('f-repeat').value = s.repeat || 'none';
+  refreshDataLists();
+  openModal('session-modal');
+}
+
+document.getElementById('f-date').addEventListener('change', function() {
+  if (this.value) document.getElementById('f-day').value = dayName(this.value);
+});
+
+function saveSession() {
+  const student = document.getElementById('f-student').value.trim();
+  const subject = document.getElementById('f-subject').value.trim();
+  const date = document.getElementById('f-date').value;
+
+  if (!student || !subject || !date) {
+    alert('Please fill in Student Name, Subject, and Date.');
+    return;
+  }
+
+  const data = {
+    id: editingSessionId || uid(),
+    student, subject, date,
+    class: document.getElementById('f-class').value.trim(),
+    timeStart: document.getElementById('f-time-start').value,
+    timeEnd: document.getElementById('f-time-end').value,
+    location: document.getElementById('f-location').value.trim(),
+    fee: document.getElementById('f-fee').value,
+    notes: document.getElementById('f-notes').value.trim(),
+    repeat: document.getElementById('f-repeat').value,
+    status: 'pending'
+  };
+
+  if (editingSessionId) {
+    const idx = db.sessions.findIndex(x => x.id === editingSessionId);
+    data.status = db.sessions[idx].status;
+    db.sessions[idx] = data;
+  } else {
+    db.sessions.push(data);
+
+    // Handle repeating sessions
+    if (data.repeat !== 'none') {
+      const steps = { daily: 1, weekly: 7, biweekly: 14, monthly: 30 };
+      const step = steps[data.repeat] || 7;
+      let base = parseDate(data.date);
+      for (let i = 1; i <= 12; i++) {
+        base = new Date(base);
+        if (data.repeat === 'monthly') base.setMonth(base.getMonth() + 1);
+        else base.setDate(base.getDate() + step);
+        db.sessions.push({ ...data, id: uid(), date: fmtDate(base) });
+      }
+    }
+  }
+
+  save();
+  closeModal('session-modal');
+  if (currentTab === 'home') renderHome();
+  if (currentTab === 'schedule') { scheduleDate = date; renderSchedule(); }
+}
+
+function deleteCurrentSession() {
+  if (!editingSessionId) return;
+  if (!confirm('Delete this session?')) return;
+  db.sessions = db.sessions.filter(x => x.id !== editingSessionId);
+  save();
+  closeModal('session-modal');
+  if (currentTab === 'home') renderHome();
+  if (currentTab === 'schedule') renderSchedule();
+}
+
+// ── STUDENT MODAL ──
+function openAddStudent() {
+  ['sf-name','sf-class','sf-phone','sf-guardian','sf-address','sf-notes'].forEach(id => document.getElementById(id).value = '');
+  openModal('student-modal');
+}
+
+function saveStudent() {
+  const name = document.getElementById('sf-name').value.trim();
+  if (!name) { alert('Please enter a student name.'); return; }
+  db.students.push({
+    id: uid(), name,
+    class: document.getElementById('sf-class').value.trim(),
+    phone: document.getElementById('sf-phone').value.trim(),
+    guardian: document.getElementById('sf-guardian').value.trim(),
+    address: document.getElementById('sf-address').value.trim(),
+    notes: document.getElementById('sf-notes').value.trim()
+  });
+  save();
+  closeModal('student-modal');
+  renderStudents();
+  updateStats();
+}
+
+function openStudentDetail(id) {
+  const s = db.students.find(x => x.id === id);
+  if (!s) return;
+  const sessions = db.sessions.filter(x => x.student === s.name);
+  const totalFee = sessions.reduce((a,b) => a + (parseFloat(b.fee)||0), 0);
+
+  const info = [
+    s.class ? `Class: ${s.class}` : null,
+    s.phone ? `📞 ${s.phone}` : null,
+    s.guardian ? `👨‍👩‍👧 ${s.guardian}` : null,
+    s.address ? `📍 ${s.address}` : null,
+    sessions.length ? `📚 ${sessions.length} sessions · ৳${totalFee} total` : null,
+    s.notes ? `📝 ${s.notes}` : null,
+  ].filter(Boolean).join('\n');
+
+  if (confirm(`${s.name}\n\n${info}\n\nDelete this student?`)) {
+    db.students = db.students.filter(x => x.id !== id);
+    save();
+    renderStudents();
+    updateStats();
+  }
+}
+
+// ── DATALISTS ──
+function refreshDataLists() {
+  const names = [...new Set([...db.students.map(s=>s.name), ...db.sessions.map(s=>s.student)])].filter(Boolean);
+  document.getElementById('students-datalist').innerHTML = names.map(n=>`<option value="${n}">`).join('');
+  const subjects = [...new Set(db.sessions.map(s=>s.subject))].filter(Boolean);
+  document.getElementById('subjects-datalist').innerHTML = subjects.map(n=>`<option value="${n}">`).join('');
+}
+
+// ── SEARCH ──
+function openSearch() {
+  document.getElementById('global-search-input').value = '';
+  document.getElementById('search-results').innerHTML = '';
+  openModal('search-modal');
+  setTimeout(() => document.getElementById('global-search-input').focus(), 300);
+}
+
+function globalSearch(q) {
+  const el = document.getElementById('search-results');
+  if (!q.trim()) { el.innerHTML = ''; return; }
+  const lower = q.toLowerCase();
+  const found = db.sessions.filter(s =>
+    (s.student||'').toLowerCase().includes(lower) ||
+    (s.subject||'').toLowerCase().includes(lower) ||
+    (s.class||'').toLowerCase().includes(lower) ||
+    (s.location||'').toLowerCase().includes(lower) ||
+    (s.notes||'').toLowerCase().includes(lower)
+  ).slice(0, 20);
+
+  if (found.length === 0) {
+    el.innerHTML = `<div class="empty" style="padding:1.5rem"><i class="fa fa-search"></i><p>No results for "<strong>${q}</strong>"</p></div>`;
+  } else {
+    el.innerHTML = found.map(s => `<div onclick="closeModal('search-modal'); setTimeout(()=>openEditSession('${s.id}'),200)">` + sessionCardHTML(s, true) + `</div>`).join('');
+  }
+}
+
+// ── EXPORT / IMPORT ──
+function exportData() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  a.download = 'tuition-tracker-' + today() + '.json';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function importDataPrompt() {
+  document.getElementById('import-file').click();
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.sessions && data.students) {
+        if (confirm(`Import ${data.sessions.length} sessions and ${data.students.length} students? This will merge with existing data.`)) {
+          // Merge (avoid duplicates by id)
+          const existIds = new Set(db.sessions.map(s => s.id));
+          data.sessions.forEach(s => { if (!existIds.has(s.id)) db.sessions.push(s); });
+          const existStIds = new Set(db.students.map(s => s.id));
+          data.students.forEach(s => { if (!existStIds.has(s.id)) db.students.push(s); });
+          save(); renderHome(); renderStudents(); updateStats();
+          alert('Import successful!');
+        }
+      } else { alert('Invalid file format.'); }
+    } catch { alert('Could not read file.'); }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function clearAllData() {
+  if (confirm('Delete ALL data? This cannot be undone.')) {
+    if (confirm('Are you sure? All sessions and students will be removed.')) {
+      db = { sessions: [], students: [], settings: { notifications: false } };
+      save(); renderHome(); renderStudents(); updateStats();
+    }
+  }
+}
+
+function saveSettings() {
+  db.settings.notifications = document.getElementById('notif-toggle').checked;
+  save();
+}
+
+// ── SEED SAMPLE DATA ──
+function seedIfEmpty() {
+  if (db.sessions.length > 0) return;
+  const t = today();
+  const d = new Date(); d.setDate(d.getDate() + 1); const tom = fmtDate(d);
+  d.setDate(d.getDate() + 1); const d2 = fmtDate(d);
+
+  db.students = [
+    { id: uid(), name: 'Rahim Hossain', class: 'Class 10', phone: '01711-000001', guardian: 'Abdul Hossain', address: 'Mirpur, Dhaka', notes: '' },
+    { id: uid(), name: 'Sultana Begum', class: 'Class 9', phone: '01811-000002', guardian: 'Karim Mia', address: 'Banani, Dhaka', notes: '' },
+    { id: uid(), name: 'Tanvir Ahmed', class: 'A-Level', phone: '01911-000003', guardian: '', address: 'Gulshan, Dhaka', notes: 'Preparing for Cambridge exams' },
+  ];
+
+  db.sessions = [
+    { id: uid(), student: 'Rahim Hossain', class: 'Class 10', subject: 'Mathematics', date: t, timeStart: '16:00', timeEnd: '17:30', location: 'Home', fee: '500', notes: 'Algebra chapter 5', repeat: 'none', status: 'pending' },
+    { id: uid(), student: 'Sultana Begum', class: 'Class 9', subject: 'Physics', date: t, timeStart: '18:00', timeEnd: '19:00', location: 'Student\'s house', fee: '400', notes: '', repeat: 'none', status: 'pending' },
+    { id: uid(), student: 'Tanvir Ahmed', class: 'A-Level', subject: 'Chemistry', date: tom, timeStart: '10:00', timeEnd: '12:00', location: 'Online', fee: '800', notes: 'Organic chemistry revision', repeat: 'none', status: 'pending' },
+    { id: uid(), student: 'Rahim Hossain', class: 'Class 10', subject: 'Mathematics', date: d2, timeStart: '16:00', timeEnd: '17:30', location: 'Home', fee: '500', notes: '', repeat: 'none', status: 'pending' },
+  ];
+  save();
+}
+
+// ── INIT ──
+load();
+seedIfEmpty();
+renderHome();
+renderWeekStrip();
+document.getElementById('notif-toggle').checked = db.settings.notifications;
+
+// Keyboard support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+  }
+});
+</script>
+</body>
+</html>
